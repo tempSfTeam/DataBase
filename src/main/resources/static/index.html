@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Equipment Ledger - Index</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial, sans-serif; margin:0; background:#f6f8fa; color:#222; }
+        .wrap { max-width:1100px; margin:40px auto; padding:20px; background:#fff; box-shadow:0 8px 24px rgba(16,24,40,0.08); border-radius:8px; }
+        h1 { margin:0 0 12px 0; font-size:22px; }
+        p { color:#555; margin:0 0 16px 0; }
+        .grid { display:flex; gap:12px; flex-wrap:wrap; }
+        .card { flex:1 1 300px; background:linear-gradient(180deg,#fff,#fbfdff); border:1px solid #e6eef8; padding:18px; border-radius:8px; text-decoration:none; color:inherit; }
+        .card h3 { margin:0 0 6px 0; font-size:18px; }
+        .card p { margin:0; color:#666; font-size:13px; }
+        footer { margin-top:18px; font-size:13px; color:#777; }
+        a.btn { display:inline-block; margin-top:12px; padding:8px 12px; background:#1f78ff; color:#fff; border-radius:6px; text-decoration:none; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Equipment Ledger — 管理前端</h1>
+    <p>简单静态页面（纯 HTML + 原生 JS）用于调试与快速运维界面。</p>
+    <div class="grid">
+        <a class="card" href="./equipment.html">
+            <h3>设备管理（Equipment）</h3>
+            <p>新增 / 更新 / 删除 设备；按型号/车间/负责人/状态分页查询，并显示维修次数。</p>
+            <span class="btn">打开</span>
+        </a>
+
+        <a class="card" href="./workshop.html">
+            <h3>车间管理（Workshop）</h3>
+            <p>新增 / 更新 / 删除 车间；按车间编号/名称/负责人/地点模糊查询并分页。</p>
+            <span class="btn">打开</span>
+        </a>
+
+        <a class="card" href="./maintenance_col.html">
+            <h3>维修记录（MaintenanceCol）</h3>
+            <p>调用存储过程创建/更新/删除维修记录；按设备/车间/时间（日/月）/故障类型分页查询。</p>
+            <span class="btn">打开</span>
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

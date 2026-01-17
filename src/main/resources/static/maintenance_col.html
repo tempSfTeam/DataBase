@@ -1,0 +1,189 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>维修记录 - MaintenanceCol</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{ --accent:#1f78ff; --danger:#ef4444; --bg:#f6f8fa; --card:#fff; --muted:#6b7280; }
+        body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
+        header{ padding:12px 18px; background:#fff; border-bottom:1px solid #eef4ff; display:flex; justify-content:space-between; align-items:center; }
+        header a{ color:var(--accent); margin-left:12px; text-decoration:none; }
+        .wrap{ max-width:1100px; margin:18px auto; padding:12px; }
+        .card{ background:var(--card); padding:12px; border-radius:8px; box-shadow:0 6px 20px rgba(16,24,40,0.04); margin-bottom:12px; }
+        label{ display:inline-block; margin:6px 8px 6px 0; color:var(--muted); }
+        input, select{ padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; }
+        .btn{ background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+        .btn.danger{ background:var(--danger); }
+        table{ width:100%; border-collapse:collapse; margin-top:10px; }
+        th,td{ padding:8px; border-bottom:1px solid #eef4ff; text-align:left; font-size:13px; }
+        th{ background:#fbfdff; }
+        .pager{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+        .msg{ color:green; }
+        .err{ color:#b91c1c; }
+    </style>
+</head>
+<body>
+<header>
+    <div><strong>维修记录管理</strong></div>
+    <div>
+        <a href="./index.html">首页</a>
+        <a href="./equipment.html">设备</a>
+        <a href="./workshop.html">车间</a>
+    </div>
+</header>
+
+<div class="wrap">
+    <div class="card">
+        <h3>新增维修记录（存储过程）</h3>
+        <div>
+            <label>维护单号: <input id="create_no" /></label>
+            <label>设备编号: <input id="create_device" /></label>
+            <label>维修时间: <input id="create_time" placeholder="2026-01-17T12:00:00" /></label>
+            <label>故障类型: <input id="create_faultType" /></label>
+            <label>故障描述: <input id="create_faultDesc" /></label>
+            <label>维修人: <input id="create_person" /></label>
+            <label>花费: <input id="create_cost" type="number" step="0.01" /></label>
+            <label>时长(min): <input id="create_duration" type="number" /></label>
+            <div style="margin-top:8px;"><button class="btn" id="btnCreate">创建</button> <span id="create_msg" class="msg"></span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>搜索维修记录（分页 + 筛选）</h3>
+        <div>
+            <label>设备: <input id="q_deviceNo" /></label>
+            <label>车间ID: <input id="q_workshopId" /></label>
+            <label>故障类型: <input id="q_faultType" /></label>
+            <label>维护时间: <input id="q_maintenanceDate" placeholder="YYYY-MM 或 YYYY-MM-DD" /></label>
+            <label>日期类型:
+                <select id="q_dateType"><option value="">不筛选</option><option value="month">按月</option><option value="day">按日</option></select>
+            </label>
+            <div style="margin-top:8px;"><button class="btn" id="btnSearch">搜索</button></div>
+
+            <div class="pager">
+                <button class="btn" id="prevPage">上一页</button>
+                <div id="pageInfo">Page 1</div>
+                <button class="btn" id="nextPage">下一页</button>
+                <div style="margin-left:auto;" id="search_msg" class="err"></div>
+            </div>
+
+            <table id="resultTable">
+                <thead><tr><th>ID</th><th>单号</th><th>设备</th><th>维修时间</th><th>故障类型</th><th>描述</th><th>维修人</th><th>花费</th><th>时长</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>更新 / 删除</h3>
+        <div>
+            <label>ID: <input id="update_id" /></label>
+            <label>维护单号: <input id="update_no" /></label>
+            <label>设备编号: <input id="update_device" /></label>
+            <label>维修时间: <input id="update_time" /></label>
+            <label>故障类型: <input id="update_faultType" /></label>
+            <label>故障描述: <input id="update_faultDesc" /></label>
+            <label>维修人: <input id="update_person" /></label>
+            <label>花费: <input id="update_cost" type="number" step="0.01" /></label>
+            <label>时长(min): <input id="update_duration" type="number" /></label>
+            <div style="margin-top:8px;">
+                <button class="btn" id="btnUpdate">更新</button>
+                <button class="btn danger" id="btnDelete">删除</button>
+                <span id="update_msg" class="msg"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE = 'http://localhost:8089';
+    const API = { create: BASE + '/api/maintenance-col/create', update: BASE + '/api/maintenance-col/update', delete: BASE + '/api/maintenance-col/delete', search: BASE + '/api/maintenance-col/search' };
+
+    async function postJson(url, body){
+        const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error(await r.text());
+        return r.json().catch(()=>null);
+    }
+
+    document.getElementById('btnCreate').addEventListener('click', async ()=>{
+        const body = {
+            maintenanceNo: document.getElementById('create_no').value.trim(),
+            deviceNo: document.getElementById('create_device').value.trim(),
+            maintenanceTime: document.getElementById('create_time').value.trim() || null,
+            faultType: document.getElementById('create_faultType').value.trim(),
+            faultDesc: document.getElementById('create_faultDesc').value.trim(),
+            repairAction: null,
+            repairPerson: document.getElementById('create_person').value.trim(),
+            cost: document.getElementById('create_cost').value ? parseFloat(document.getElementById('create_cost').value) : null,
+            durationMinutes: document.getElementById('create_duration').value ? parseInt(document.getElementById('create_duration').value): null
+        };
+        try{ await postJson(API.create, body); document.getElementById('create_msg').textContent='创建成功'; doSearch(1); }
+        catch(e){ document.getElementById('create_msg').textContent='创建失败: '+e.message; }
+    });
+
+    document.getElementById('btnUpdate').addEventListener('click', async ()=>{
+        const body = {
+            maintenanceId: parseInt(document.getElementById('update_id').value),
+            maintenanceNo: document.getElementById('update_no').value.trim(),
+            deviceNo: document.getElementById('update_device').value.trim(),
+            maintenanceTime: document.getElementById('update_time').value.trim() || null,
+            faultType: document.getElementById('update_faultType').value.trim(),
+            faultDesc: document.getElementById('update_faultDesc').value.trim(),
+            repairAction: null,
+            repairPerson: document.getElementById('update_person').value.trim(),
+            cost: document.getElementById('update_cost').value ? parseFloat(document.getElementById('update_cost').value) : null,
+            durationMinutes: document.getElementById('update_duration').value ? parseInt(document.getElementById('update_duration').value): null
+        };
+        if (!body.maintenanceId) { alert('maintenanceId 必填'); return; }
+        try{ await postJson(API.update, body); document.getElementById('update_msg').textContent='更新成功'; doSearch(currentPage); }
+        catch(e){ document.getElementById('update_msg').textContent='更新失败: '+e.message; }
+    });
+
+    document.getElementById('btnDelete').addEventListener('click', async ()=>{
+        const id = parseInt(document.getElementById('update_id').value);
+        if (!id) { alert('请输入 maintenanceId'); return; }
+        if (!confirm('确认删除 id=' + id + ' ?')) return;
+        try{ await postJson(API.delete, { maintenanceId: id }); document.getElementById('update_msg').textContent='删除成功'; doSearch(1); }
+        catch(e){ document.getElementById('update_msg').textContent='删除失败: '+e.message; }
+    });
+
+    // Search & pagination
+    let currentPage = 1, pageSize = 10, total = 0;
+    document.getElementById('btnSearch').addEventListener('click', ()=>doSearch(1));
+    document.getElementById('prevPage').addEventListener('click', ()=>{ if (currentPage>1) doSearch(currentPage-1); });
+    document.getElementById('nextPage').addEventListener('click', ()=>{ if (currentPage < Math.ceil(total/pageSize)) doSearch(currentPage+1); });
+
+    async function doSearch(page){
+        currentPage = page;
+        const params = new URLSearchParams({
+            page, size: pageSize,
+            deviceNo: document.getElementById('q_deviceNo').value.trim(),
+            workshopId: document.getElementById('q_workshopId').value.trim(),
+            maintenanceDate: document.getElementById('q_maintenanceDate').value.trim(),
+            dateType: document.getElementById('q_dateType').value,
+            faultType: document.getElementById('q_faultType').value.trim()
+        });
+        try{
+            const r = await fetch(API.search + '?' + params.toString());
+            if (!r.ok) throw new Error(await r.text());
+            const data = await r.json();
+            total = data.total || 0;
+            renderRows(data.records || []);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${Math.max(1, Math.ceil(total/pageSize))} (Total ${total})`;
+        }catch(e){ document.getElementById('search_msg').textContent = '搜索失败: ' + e.message; }
+    }
+
+    function renderRows(rows){
+        const tbody = document.querySelector('#resultTable tbody'); tbody.innerHTML='';
+        for (const r of rows){
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${r.maintenanceId||''}</td><td>${escapeHtml(r.maintenanceNo)}</td><td>${escapeHtml(r.deviceNo)}</td><td>${escapeHtml(r.maintenanceTime||'')}</td><td>${escapeHtml(r.faultType)}</td><td>${escapeHtml(r.faultDesc)}</td><td>${escapeHtml(r.repairPerson)}</td><td>${r.cost||''}</td><td>${r.durationMinutes||''}</td>`;
+            tbody.appendChild(tr);
+        }
+    }
+    function escapeHtml(s){ if (s==null) return ''; return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    doSearch(1);
+</script>
+</body>
+</html>

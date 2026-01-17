@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>车间管理 - Workshop</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{ --accent:#1f78ff; --bg:#f6f8fa; --card:#fff; --muted:#6b7280; --danger:#ef4444;}
+        body{ margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
+        header{ padding:12px 18px; background:#fff; border-bottom:1px solid #eef4ff; display:flex; align-items:center; justify-content:space-between;}
+        header h1{ margin:0; font-size:18px; }
+        header a{ color:var(--accent); text-decoration:none; margin-left:12px; }
+        .wrap{ max-width:1200px; margin:18px auto; padding:12px; }
+        .card{ background:var(--card); padding:12px; border-radius:8px; box-shadow:0 6px 20px rgba(16,24,40,0.04); margin-bottom:12px;}
+        label{ display:inline-block; margin:6px 8px 6px 0; color:var(--muted); }
+        input, select, textarea{ padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; }
+        textarea{ width:360px; height:64px; vertical-align:top; resize:vertical; }
+        .btn{ background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+        table{ width:100%; border-collapse:collapse; margin-top:10px; }
+        th,td{ padding:8px; border-bottom:1px solid #eef4ff; text-align:left; }
+        th{ background:#fbfdff; }
+        .pager{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+        .msg{ color:green; }
+        .err{ color:#b91c1c; }
+        tr.clickable:hover{ background:#f3f7ff; cursor:pointer; }
+        .small { font-size:12px; color:var(--muted); }
+        .req-star { color: var(--danger); margin-left:4px; font-weight:700; }
+        .field-row { margin-bottom:6px; }
+    </style>
+</head>
+<body>
+<header>
+    <div><h1>车间管理</h1></div>
+    <div>
+        <a href="./index.html">首页</a>
+        <a href="./equipment.html">设备</a>
+        <a href="./maintenance_col.html">维修记录</a>
+    </div>
+</header>
+
+<div class="wrap">
+    <div class="card">
+        <h3>新增车间</h3>
+        <div>
+            <div class="field-row">
+                <label>车间ID: <span class="req-star">*</span></label>
+                <input id="create_workshopId" required />
+            </div>
+            <div class="field-row">
+                <label>名称: <span class="req-star">*</span></label>
+                <input id="create_name" required />
+            </div>
+            <div class="field-row">
+                <label>负责人: </label>
+                <input id="create_manager" />
+            </div>
+            <div class="field-row">
+                <label>地点: </label>
+                <input id="create_location" />
+            </div>
+            <div class="field-row">
+                <label>描述: </label>
+                <textarea id="create_description" placeholder="可选：描述该车间职责/说明"></textarea>
+            </div>
+            <div style="margin-top:8px;"><button class="btn" id="btnCreate">创建</button> <span id="create_msg" class="msg"></span> <span id="create_err" class="err"></span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>搜索车间（分页 + 四字段模糊）</h3>
+        <div>
+            <label>编号: <input id="q_workshopId" /></label>
+            <label>名称: <input id="q_name" /></label>
+            <label>负责人: <input id="q_manager" /></label>
+            <label>地点: <input id="q_location" /></label>
+            <div style="margin-top:8px;"><button class="btn" id="btnSearch">搜索</button></div>
+
+            <div class="pager">
+                <button class="btn" id="prevPage">上一页</button>
+                <div id="pageInfo">Page 1</div>
+                <button class="btn" id="nextPage">下一页</button>
+                <div style="margin-left:auto;" id="search_msg" class="err"></div>
+            </div>
+
+            <table id="resultTable">
+                <thead>
+                <tr>
+                    <th>车间ID</th>
+                    <th>名称</th>
+                    <th>负责人</th>
+                    <th>地点</th>
+                    <th>描述</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="small">提示：带 <span class="req-star">*</span> 为必填。点击某一行将把该行数据填到下方更新表单（便于编辑）。</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>更新 / 删除（点击表格行可填充）</h3>
+        <div>
+            <label>车间ID(必填): <input id="update_workshopId" /></label>
+            <label>名称: <input id="update_name" /></label>
+            <label>负责人: <input id="update_manager" /></label>
+            <label>地点: <input id="update_location" /></label><br/>
+            <label>描述: <textarea id="update_description"></textarea></label><br/>
+            <label>创建时间: <input id="update_createdAt" disabled /></label>
+            <label>更新时间: <input id="update_updatedAt" disabled /></label>
+            <div style="margin-top:8px;">
+                <button class="btn" id="btnUpdate">更新</button>
+                <button class="btn" id="btnDelete" style="background:#ef4444; margin-left:8px;">删除</button>
+                <span id="update_msg" class="msg"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE = 'http://localhost:8089';
+    const API = {
+        create: BASE + '/workshops/create',
+        update: BASE + '/workshops/update',
+        delete: BASE + '/workshops/delete',
+        search: BASE + '/workshops/search'
+    };
+
+    function showMsg(el, text, ok=true){
+        el.textContent = text || '';
+        el.style.color = ok ? 'green' : '#b91c1c';
+        if (text) setTimeout(()=>{ el.textContent = '' }, 4000);
+    }
+
+    async function postJson(url, body){
+        const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error(await r.text());
+        return r.json().catch(()=>null);
+    }
+
+    document.getElementById('btnCreate').addEventListener('click', async ()=>{
+        // front-end validation for required fields
+        const workshopId = document.getElementById('create_workshopId').value.trim();
+        const name = document.getElementById('create_name').value.trim();
+        const errEl = document.getElementById('create_err');
+        errEl.textContent = '';
+        if (!workshopId) { showMsg(errEl, '车间编号为必填项', false); return; }
+        if (!name) { showMsg(errEl, '车间名称为必填项', false); return; }
+
+        const b = { workshopId, name,
+            manager: document.getElementById('create_manager').value.trim(),
+            location: document.getElementById('create_location').value.trim(),
+            description: document.getElementById('create_description').value.trim()
+        };
+        try{ await postJson(API.create, b); showMsg(document.getElementById('create_msg'), '创建成功'); doSearch(1); }
+        catch(e){ showMsg(errEl, '创建失败: '+e.message, false); }
+    });
+
+    document.getElementById('btnUpdate').addEventListener('click', async ()=>{
+        const b = {
+            workshopId: document.getElementById('update_workshopId').value.trim(),
+            name: document.getElementById('update_name').value.trim(),
+            manager: document.getElementById('update_manager').value.trim(),
+            location: document.getElementById('update_location').value.trim(),
+            description: document.getElementById('update_description').value.trim()
+        };
+        if (!b.workshopId) { alert('workshopId 必填'); return; }
+        try{ await postJson(API.update, b); showMsg(document.getElementById('update_msg'), '更新成功'); doSearch(currentPage); }
+        catch(e){ showMsg(document.getElementById('update_msg'), '更新失败: '+e.message, false); }
+    });
+
+    document.getElementById('btnDelete').addEventListener('click', async ()=>{
+        const id = document.getElementById('update_workshopId').value.trim();
+        if (!id) { alert('请输入要删除的 workshopId'); return; }
+        if (!confirm('确认删除 ' + id + ' ?')) return;
+        try{ await postJson(API.delete, { workshopId: id }); showMsg(document.getElementById('update_msg'), '删除成功'); doSearch(1); }
+        catch(e){ showMsg(document.getElementById('update_msg'), '删除失败: '+e.message, false); }
+    });
+
+    // Search & pagination
+    let currentPage = 1, pageSize = 10, total = 0;
+    document.getElementById('btnSearch').addEventListener('click', ()=>doSearch(1));
+    document.getElementById('prevPage').addEventListener('click', ()=>{ if (currentPage>1) doSearch(currentPage-1); });
+    document.getElementById('nextPage').addEventListener('click', ()=>{ if (currentPage < Math.ceil(total/pageSize)) doSearch(currentPage+1); });
+
+    async function doSearch(page){
+        currentPage = page;
+        const params = new URLSearchParams({
+            page, size: pageSize,
+            workshopId: document.getElementById('q_workshopId').value.trim(),
+            name: document.getElementById('q_name').value.trim(),
+            manager: document.getElementById('q_manager').value.trim(),
+            location: document.getElementById('q_location').value.trim()
+        });
+        try{
+            const r = await fetch(API.search + '?' + params.toString());
+            if (!r.ok) throw new Error(await r.text());
+            const data = await r.json();
+            total = data.total || 0;
+            renderRows(data.records || []);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${Math.max(1, Math.ceil(total/pageSize))} (Total ${total})`;
+        }catch(e){ showMsg(document.getElementById('search_msg'), '搜索失败: ' + e.message, false); }
+    }
+
+    function renderRows(rows){
+        const tbody = document.querySelector('#resultTable tbody'); tbody.innerHTML='';
+        for (const r of rows){
+            const tr = document.createElement('tr');
+            tr.className = 'clickable';
+            // Note: show createdAt/updatedAt as returned by backend (no formatting)
+            tr.innerHTML = `<td>${escapeHtml(r.workshopId)}</td>
+                    <td>${escapeHtml(r.name)}</td>
+                    <td>${escapeHtml(r.manager)}</td>
+                    <td>${escapeHtml(r.location)}</td>
+                    <td>${escapeHtml(r.description || '')}</td>
+                    <td>${escapeHtml(r.createdAt || '')}</td>
+                    <td>${escapeHtml(r.updatedAt || '')}</td>`;
+            // click-to-fill update form
+            tr.addEventListener('click', ()=> fillUpdateForm(r));
+            tbody.appendChild(tr);
+        }
+    }
+
+    function fillUpdateForm(r){
+        document.getElementById('update_workshopId').value = r.workshopId || '';
+        document.getElementById('update_name').value = r.name || '';
+        document.getElementById('update_manager').value = r.manager || '';
+        document.getElementById('update_location').value = r.location || '';
+        document.getElementById('update_description').value = r.description || '';
+        document.getElementById('update_createdAt').value = r.createdAt || '';
+        document.getElementById('update_updatedAt').value = r.updatedAt || '';
+    }
+
+    function escapeHtml(s){ if (s==null) return ''; return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    doSearch(1);
+</script>
+</body>
+</html>
