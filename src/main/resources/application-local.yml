@@ -1,0 +1,21 @@
+server:
+  port: 8089
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: joe
+    password: GaussDB@123
+    url: postgres:mysql://localhost:3306/cloud_classroom
+    # 配置数据库连接池 Hikari 连接池
+    hikari:
+      minimum-idle: 3
+      # 自动提交
+      auto-commit: true
+      # 最大连接数
+      maximum-pool-size: 5
+      # 连接最大存活时间
+      connection-timeout: 30000
+      # 空闲超时时间
+      idle-timeout: 600000
+      # 最大存活时间
+      max-lifetime: 1800000
