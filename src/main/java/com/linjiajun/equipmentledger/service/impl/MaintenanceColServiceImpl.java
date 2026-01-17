@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+
 /**
 * @author 21983
 * @description 针对表【maintenance_col】的数据库操作Service实现
@@ -28,11 +31,24 @@ public class MaintenanceColServiceImpl extends ServiceImpl<MaintenanceColMapper,
     @Override
     @Transactional
     public Long create(MaintenanceCol m) {
+        // 将前端传来的 LocalDateTime 视为「本地时间（server/system 时区）」
+        // 并转换为 OffsetDateTime，再传入存储过程。
+        OffsetDateTime maintenanceTimeOffset;
+        if (m.getMaintenanceTime() == null) {
+            // 使用系统时区当前时间（含偏移）
+            maintenanceTimeOffset = OffsetDateTime.now(ZoneId.systemDefault());
+        } else {
+            // 把 LocalDateTime 解释为系统时区的时间点，再转换为带偏移的时间
+            maintenanceTimeOffset = m.getMaintenanceTime()
+                    .atZone(ZoneId.systemDefault())
+                    .toOffsetDateTime();
+        }
+
         // 使用存储过程（支持传入 now() 等）
         return maintenanceColMapper.insertMaintenance(
                 m.getMaintenanceNo(),
                 m.getDeviceNo(),
-                m.getMaintenanceTime() == null ? java.time.OffsetDateTime.now() : m.getMaintenanceTime().atOffset(java.time.ZoneOffset.UTC),
+                maintenanceTimeOffset,
                 m.getFaultType(),
                 m.getFaultDesc(),
                 m.getRepairAction(),
@@ -45,11 +61,24 @@ public class MaintenanceColServiceImpl extends ServiceImpl<MaintenanceColMapper,
     @Override
     @Transactional
     public void update(MaintenanceCol m) {
+        // 将前端传来的 LocalDateTime 视为「本地时间（server/system 时区）」
+        // 并转换为 OffsetDateTime，再传入存储过程。
+        OffsetDateTime maintenanceTimeOffset;
+        if (m.getMaintenanceTime() == null) {
+            // 使用系统时区当前时间（含偏移）
+            maintenanceTimeOffset = OffsetDateTime.now(ZoneId.systemDefault());
+        } else {
+            // 把 LocalDateTime 解释为系统时区的时间点，再转换为带偏移的时间
+            maintenanceTimeOffset = m.getMaintenanceTime()
+                    .atZone(ZoneId.systemDefault())
+                    .toOffsetDateTime();
+        }
+
         maintenanceColMapper.updateMaintenance(
                 m.getMaintenanceId(),
                 m.getMaintenanceNo(),
                 m.getDeviceNo(),
-                m.getMaintenanceTime() == null ? java.time.OffsetDateTime.now() : m.getMaintenanceTime().atOffset(java.time.ZoneOffset.UTC),
+                maintenanceTimeOffset,
                 m.getFaultType(),
                 m.getFaultDesc(),
                 m.getRepairAction(),

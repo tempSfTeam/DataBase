@@ -87,7 +87,7 @@
 
         <!-- maintenance_time 日期筛选：支持 day 或 month -->
         <if test="maintenanceDate != null and maintenanceDate.trim() != '' and dateType != null and dateType == 'day'">
-            AND DATE(m.maintenance_time) = CAST(#{maintenanceDate} AS date)
+            AND to_char(m.maintenance_time, 'YYYY-MM-DD') = #{maintenanceDate}
         </if>
 
         <if test="maintenanceDate != null and maintenanceDate.trim() != '' and dateType != null and dateType == 'month'">

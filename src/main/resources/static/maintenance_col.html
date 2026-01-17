@@ -12,7 +12,9 @@
         .wrap{ max-width:1100px; margin:18px auto; padding:12px; }
         .card{ background:var(--card); padding:12px; border-radius:8px; box-shadow:0 6px 20px rgba(16,24,40,0.04); margin-bottom:12px; }
         label{ display:inline-block; margin:6px 8px 6px 0; color:var(--muted); }
-        input, select{ padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; }
+        input, select, textarea{ padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; }
+        input[type="datetime-local"], input[type="date"], input[type="month"]{ width:220px; }
+        textarea{ width:360px; height:64px; vertical-align:top; resize:vertical; }
         .btn{ background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
         .btn.danger{ background:var(--danger); }
         table{ width:100%; border-collapse:collapse; margin-top:10px; }
@@ -21,6 +23,10 @@
         .pager{ display:flex; gap:8px; align-items:center; margin-top:8px; }
         .msg{ color:green; }
         .err{ color:#b91c1c; }
+        .req-star { color: var(--danger); margin-left:4px; font-weight:700; }
+        tr.clickable:hover{ background:#f3f7ff; cursor:pointer; }
+        .small { font-size:12px; color:var(--muted); }
+        .field-row { margin-bottom:8px; }
     </style>
 </head>
 <body>
@@ -36,69 +42,169 @@
 <div class="wrap">
     <div class="card">
         <h3>新增维修记录（存储过程）</h3>
-        <div>
-            <label>维护单号: <input id="create_no" /></label>
-            <label>设备编号: <input id="create_device" /></label>
-            <label>维修时间: <input id="create_time" placeholder="2026-01-17T12:00:00" /></label>
-            <label>故障类型: <input id="create_faultType" /></label>
-            <label>故障描述: <input id="create_faultDesc" /></label>
-            <label>维修人: <input id="create_person" /></label>
-            <label>花费: <input id="create_cost" type="number" step="0.01" /></label>
-            <label>时长(min): <input id="create_duration" type="number" /></label>
-            <div style="margin-top:8px;"><button class="btn" id="btnCreate">创建</button> <span id="create_msg" class="msg"></span></div>
+
+        <div class="field-row">
+            <label>维护单号 <span class="req-star">*</span></label>
+            <input id="create_no" type="text" />
+        </div>
+
+        <div class="field-row">
+            <label>设备编号 <span class="req-star">*</span></label>
+            <input id="create_device" type="text" />
+        </div>
+
+        <div class="field-row">
+            <label>维修时间 <span class="req-star">*</span> <span class="small"></span></label>
+            <input id="create_time" type="datetime-local" />
+        </div>
+
+        <div class="field-row">
+            <label>故障类型 <span class="req-star">*</span></label>
+            <input id="create_faultType" type="text" />
+        </div>
+
+        <div class="field-row">
+            <label>故障描述</label>
+            <textarea id="create_faultDesc"></textarea>
+        </div>
+
+        <div class="field-row">
+            <label>维修动作 (repair_action)</label>
+            <input id="create_repairAction" type="text" />
+        </div>
+
+        <div class="field-row">
+            <label>维修人</label>
+            <input id="create_person" type="text" />
+        </div>
+
+        <div class="field-row">
+            <label>花费 <span class="req-star">*</span></label>
+            <input id="create_cost" type="number" step="0.01" />
+        </div>
+
+        <div class="field-row">
+            <label>耗时(分钟)</label>
+            <input id="create_duration" type="number" />
+        </div>
+
+        <div style="margin-top:8px;">
+            <button class="btn" id="btnCreate">创建</button>
+            <span id="create_msg" class="msg"></span>
+            <span id="create_err" class="err"></span>
+        </div>
+
+        <div class="small" style="margin-top:6px;">
+            当前界面将 <span class="req-star">*</span> 标注为必填（maintenance_no, device_no, maintenance_time, fault_type, cost）。
         </div>
     </div>
 
     <div class="card">
         <h3>搜索维修记录（分页 + 筛选）</h3>
-        <div>
+
+        <div class="field-row">
             <label>设备: <input id="q_deviceNo" /></label>
             <label>车间ID: <input id="q_workshopId" /></label>
             <label>故障类型: <input id="q_faultType" /></label>
-            <label>维护时间: <input id="q_maintenanceDate" placeholder="YYYY-MM 或 YYYY-MM-DD" /></label>
-            <label>日期类型:
-                <select id="q_dateType"><option value="">不筛选</option><option value="month">按月</option><option value="day">按日</option></select>
-            </label>
-            <div style="margin-top:8px;"><button class="btn" id="btnSearch">搜索</button></div>
-
-            <div class="pager">
-                <button class="btn" id="prevPage">上一页</button>
-                <div id="pageInfo">Page 1</div>
-                <button class="btn" id="nextPage">下一页</button>
-                <div style="margin-left:auto;" id="search_msg" class="err"></div>
-            </div>
-
-            <table id="resultTable">
-                <thead><tr><th>ID</th><th>单号</th><th>设备</th><th>维修时间</th><th>故障类型</th><th>描述</th><th>维修人</th><th>花费</th><th>时长</th></tr></thead>
-                <tbody></tbody>
-            </table>
         </div>
+
+        <div class="field-row">
+            <label>维护时间筛选:</label>
+            <select id="q_dateType">
+                <option value="">不筛选</option>
+                <option value="day">按日</option>
+                <option value="month">按月</option>
+            </select>
+            <!-- 日和月输入由 JS 切换显示 -->
+            <input id="q_day" type="date" style="display:none; margin-left:8px;" />
+            <input id="q_month" type="month" style="display:none; margin-left:8px;" />
+        </div>
+
+        <div style="margin-top:8px;">
+            <button class="btn" id="btnSearch">搜索</button>
+        </div>
+
+        <div class="pager" style="margin-top:8px;">
+            <button class="btn" id="prevPage">上一页</button>
+            <div id="pageInfo" class="small">Page 1</div>
+            <button class="btn" id="nextPage">下一页</button>
+            <div style="margin-left:auto;" id="search_msg" class="err"></div>
+        </div>
+
+        <table id="resultTable">
+            <thead><tr>
+                <th>ID</th><th>单号</th><th>设备</th><th>维修时间</th><th>故障类型</th><th>故障描述</th><th>维修动作</th><th>维修人</th><th>花费</th><th>时长(min)</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <div class="card">
         <h3>更新 / 删除</h3>
-        <div>
-            <label>ID: <input id="update_id" /></label>
-            <label>维护单号: <input id="update_no" /></label>
-            <label>设备编号: <input id="update_device" /></label>
-            <label>维修时间: <input id="update_time" /></label>
-            <label>故障类型: <input id="update_faultType" /></label>
-            <label>故障描述: <input id="update_faultDesc" /></label>
-            <label>维修人: <input id="update_person" /></label>
-            <label>花费: <input id="update_cost" type="number" step="0.01" /></label>
-            <label>时长(min): <input id="update_duration" type="number" /></label>
-            <div style="margin-top:8px;">
-                <button class="btn" id="btnUpdate">更新</button>
-                <button class="btn danger" id="btnDelete">删除</button>
-                <span id="update_msg" class="msg"></span>
-            </div>
+
+        <div class="field-row">
+            <label>maintenanceId: <input id="update_id" type="number" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>维护单号 <span class="req-star">*</span>: <input id="update_no" type="text" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>设备编号 <span class="req-star">*</span>: <input id="update_device" type="text" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>维修时间 <span class="req-star">*</span>: <input id="update_time" type="datetime-local" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>故障类型 <span class="req-star">*</span>: <input id="update_faultType" type="text" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>故障描述: <textarea id="update_faultDesc"></textarea></label>
+        </div>
+
+        <div class="field-row">
+            <label>维修动作 (repair_action): <input id="update_repairAction" type="text" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>维修人: <input id="update_person" type="text" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>花费 <span class="req-star">*</span>: <input id="update_cost" type="number" step="0.01" /></label>
+        </div>
+
+        <div class="field-row">
+            <label>耗时(分钟): <input id="update_duration" type="number" /></label>
+        </div>
+
+        <div style="margin-top:8px;">
+            <button class="btn" id="btnUpdate">更新</button>
+            <button class="btn danger" id="btnDelete">删除</button>
+            <span id="update_msg" class="msg"></span>
+            <span id="update_err" class="err"></span>
         </div>
     </div>
 </div>
 
 <script>
     const BASE = 'http://localhost:8089';
-    const API = { create: BASE + '/api/maintenance-col/create', update: BASE + '/api/maintenance-col/update', delete: BASE + '/api/maintenance-col/delete', search: BASE + '/api/maintenance-col/search' };
+    const API = {
+        create: BASE + '/api/maintenance-col/create',
+        update: BASE + '/api/maintenance-col/update',
+        delete: BASE + '/api/maintenance-col/delete',
+        search: BASE + '/api/maintenance-col/search'
+    };
+
+    function showMsg(el, text, ok=true){
+        el.textContent = text || '';
+        el.style.color = ok ? 'green' : '#b91c1c';
+        if (text) setTimeout(()=> el.textContent = '', 4000);
+    }
 
     async function postJson(url, body){
         const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
@@ -106,46 +212,103 @@
         return r.json().catch(()=>null);
     }
 
+    // Toggle search date inputs based on dateType
+    const dateTypeEl = document.getElementById('q_dateType');
+    const qDay = document.getElementById('q_day');
+    const qMonth = document.getElementById('q_month');
+    dateTypeEl.addEventListener('change', ()=> {
+        const v = dateTypeEl.value;
+        qDay.style.display = (v==='day') ? 'inline-block' : 'none';
+        qMonth.style.display = (v==='month') ? 'inline-block' : 'none';
+    });
+
+    // Create
     document.getElementById('btnCreate').addEventListener('click', async ()=>{
-        const body = {
-            maintenanceNo: document.getElementById('create_no').value.trim(),
-            deviceNo: document.getElementById('create_device').value.trim(),
-            maintenanceTime: document.getElementById('create_time').value.trim() || null,
-            faultType: document.getElementById('create_faultType').value.trim(),
-            faultDesc: document.getElementById('create_faultDesc').value.trim(),
-            repairAction: null,
-            repairPerson: document.getElementById('create_person').value.trim(),
-            cost: document.getElementById('create_cost').value ? parseFloat(document.getElementById('create_cost').value) : null,
-            durationMinutes: document.getElementById('create_duration').value ? parseInt(document.getElementById('create_duration').value): null
+        const errEl = document.getElementById('create_err'); errEl.textContent='';
+        const maintenanceNo = document.getElementById('create_no').value.trim();
+        const deviceNo = document.getElementById('create_device').value.trim();
+        const maintenanceTime = document.getElementById('create_time').value;
+        const faultType = document.getElementById('create_faultType').value.trim();
+        const costVal = document.getElementById('create_cost').value;
+
+        // front-end required checks
+        if (!maintenanceNo) { showMsg(errEl, 'maintenance_no 为必填', false); return; }
+        if (!deviceNo) { showMsg(errEl, 'device_no 为必填', false); return; }
+        if (!maintenanceTime) { showMsg(errEl, 'maintenance_time 为必填', false); return; }
+        if (!faultType) { showMsg(errEl, 'fault_type 为必填', false); return; }
+        if (!costVal) { showMsg(errEl, 'cost 为必填', false); return; }
+
+        const payload = {
+            maintenanceNo: maintenanceNo,
+            deviceNo: deviceNo,
+            maintenanceTime: maintenanceTime || null,
+            faultType: faultType || null,
+            faultDesc: document.getElementById('create_faultDesc').value.trim() || null,
+            repairAction: document.getElementById('create_repairAction').value.trim() || null,
+            repairPerson: document.getElementById('create_person').value.trim() || null,
+            cost: parseFloat(costVal),
+            durationMinutes: document.getElementById('create_duration').value ? parseInt(document.getElementById('create_duration').value) : null
         };
-        try{ await postJson(API.create, body); document.getElementById('create_msg').textContent='创建成功'; doSearch(1); }
-        catch(e){ document.getElementById('create_msg').textContent='创建失败: '+e.message; }
+        try {
+            await postJson(API.create, payload);
+            showMsg(document.getElementById('create_msg'), '创建成功');
+            doSearch(1);
+        } catch (e) {
+            showMsg(errEl, '创建失败: ' + e.message, false);
+        }
     });
 
+    // Update
     document.getElementById('btnUpdate').addEventListener('click', async ()=>{
-        const body = {
-            maintenanceId: parseInt(document.getElementById('update_id').value),
-            maintenanceNo: document.getElementById('update_no').value.trim(),
-            deviceNo: document.getElementById('update_device').value.trim(),
-            maintenanceTime: document.getElementById('update_time').value.trim() || null,
-            faultType: document.getElementById('update_faultType').value.trim(),
-            faultDesc: document.getElementById('update_faultDesc').value.trim(),
-            repairAction: null,
-            repairPerson: document.getElementById('update_person').value.trim(),
-            cost: document.getElementById('update_cost').value ? parseFloat(document.getElementById('update_cost').value) : null,
-            durationMinutes: document.getElementById('update_duration').value ? parseInt(document.getElementById('update_duration').value): null
+        const errEl = document.getElementById('update_err'); errEl.textContent='';
+        const id = document.getElementById('update_id').value;
+        const maintenanceNo = document.getElementById('update_no').value.trim();
+        const deviceNo = document.getElementById('update_device').value.trim();
+        const maintenanceTime = document.getElementById('update_time').value;
+        const faultType = document.getElementById('update_faultType').value.trim();
+        const costVal = document.getElementById('update_cost').value;
+
+        if (!id) { showMsg(errEl, 'maintenanceId 必填用于更新', false); return; }
+        // Enforce required fields on update as well
+        if (!maintenanceNo) { showMsg(errEl, 'maintenance_no 为必填', false); return; }
+        if (!deviceNo) { showMsg(errEl, 'device_no 为必填', false); return; }
+        if (!maintenanceTime) { showMsg(errEl, 'maintenance_time 为必填', false); return; }
+        if (!faultType) { showMsg(errEl, 'fault_type 为必填', false); return; }
+        if (!costVal) { showMsg(errEl, 'cost 为必填', false); return; }
+
+        const payload = {
+            maintenanceId: parseInt(id),
+            maintenanceNo: maintenanceNo || null,
+            deviceNo: deviceNo || null,
+            maintenanceTime: maintenanceTime || null,
+            faultType: faultType || null,
+            faultDesc: document.getElementById('update_faultDesc').value.trim() || null,
+            repairAction: document.getElementById('update_repairAction').value.trim() || null,
+            repairPerson: document.getElementById('update_person').value.trim() || null,
+            cost: parseFloat(costVal),
+            durationMinutes: document.getElementById('update_duration').value ? parseInt(document.getElementById('update_duration').value) : null
         };
-        if (!body.maintenanceId) { alert('maintenanceId 必填'); return; }
-        try{ await postJson(API.update, body); document.getElementById('update_msg').textContent='更新成功'; doSearch(currentPage); }
-        catch(e){ document.getElementById('update_msg').textContent='更新失败: '+e.message; }
+        try {
+            await postJson(API.update, payload);
+            showMsg(document.getElementById('update_msg'), '更新成功');
+            doSearch(currentPage);
+        } catch (e) {
+            showMsg(errEl, '更新失败: ' + e.message, false);
+        }
     });
 
-    document.getElementById('btnDelete').addEventListener('click', async ()=>{
-        const id = parseInt(document.getElementById('update_id').value);
+    // Delete
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+        const id = document.getElementById('update_id').value;
         if (!id) { alert('请输入 maintenanceId'); return; }
         if (!confirm('确认删除 id=' + id + ' ?')) return;
-        try{ await postJson(API.delete, { maintenanceId: id }); document.getElementById('update_msg').textContent='删除成功'; doSearch(1); }
-        catch(e){ document.getElementById('update_msg').textContent='删除失败: '+e.message; }
+        try {
+            await postJson(API.delete, { maintenanceId: parseInt(id) });
+            showMsg(document.getElementById('update_msg'), '删除成功');
+            doSearch(1);
+        } catch (e) {
+            showMsg(document.getElementById('update_err'), '删除失败: ' + e.message, false);
+        }
     });
 
     // Search & pagination
@@ -156,33 +319,74 @@
 
     async function doSearch(page){
         currentPage = page;
+        const dateType = document.getElementById('q_dateType').value;
+        let maintenanceDate = '';
+        if (dateType === 'day') maintenanceDate = document.getElementById('q_day').value;
+        else if (dateType === 'month') maintenanceDate = document.getElementById('q_month').value;
         const params = new URLSearchParams({
             page, size: pageSize,
             deviceNo: document.getElementById('q_deviceNo').value.trim(),
             workshopId: document.getElementById('q_workshopId').value.trim(),
-            maintenanceDate: document.getElementById('q_maintenanceDate').value.trim(),
-            dateType: document.getElementById('q_dateType').value,
+            maintenanceDate: maintenanceDate,
+            dateType: dateType,
             faultType: document.getElementById('q_faultType').value.trim()
         });
-        try{
+        try {
             const r = await fetch(API.search + '?' + params.toString());
             if (!r.ok) throw new Error(await r.text());
             const data = await r.json();
             total = data.total || 0;
             renderRows(data.records || []);
             document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${Math.max(1, Math.ceil(total/pageSize))} (Total ${total})`;
-        }catch(e){ document.getElementById('search_msg').textContent = '搜索失败: ' + e.message; }
+        } catch (e) {
+            showMsg(document.getElementById('search_msg'), '搜索失败: ' + e.message, false);
+        }
     }
 
     function renderRows(rows){
-        const tbody = document.querySelector('#resultTable tbody'); tbody.innerHTML='';
+        const tbody = document.querySelector('#resultTable tbody');
+        tbody.innerHTML = '';
         for (const r of rows){
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.maintenanceId||''}</td><td>${escapeHtml(r.maintenanceNo)}</td><td>${escapeHtml(r.deviceNo)}</td><td>${escapeHtml(r.maintenanceTime||'')}</td><td>${escapeHtml(r.faultType)}</td><td>${escapeHtml(r.faultDesc)}</td><td>${escapeHtml(r.repairPerson)}</td><td>${r.cost||''}</td><td>${r.durationMinutes||''}</td>`;
+            tr.className = 'clickable';
+            tr.innerHTML = `<td>${r.maintenanceId||''}</td>
+                    <td>${escapeHtml(r.maintenanceNo)}</td>
+                    <td>${escapeHtml(r.deviceNo)}</td>
+                    <td>${escapeHtml(r.maintenanceTime || '')}</td>
+                    <td>${escapeHtml(r.faultType || '')}</td>
+                    <td>${escapeHtml(r.faultDesc || '')}</td>
+                    <td>${escapeHtml(r.repairAction || '')}</td>
+                    <td>${escapeHtml(r.repairPerson || '')}</td>
+                    <td>${r.cost!=null?escapeHtml(r.cost):''}</td>
+                    <td>${r.durationMinutes!=null?r.durationMinutes:''}</td>`;
+            tr.addEventListener('click', ()=> fillUpdateForm(r));
             tbody.appendChild(tr);
         }
     }
+
+    function fillUpdateForm(r){
+        document.getElementById('update_id').value = r.maintenanceId || '';
+        document.getElementById('update_no').value = r.maintenanceNo || '';
+        document.getElementById('update_device').value = r.deviceNo || '';
+        // Try to set datetime-local value: use substring to trim seconds if present
+        if (r.maintenanceTime) {
+            let v = r.maintenanceTime.replace(' ', 'T');
+            if (v.length >= 16) v = v.substring(0,16);
+            document.getElementById('update_time').value = v;
+        } else {
+            document.getElementById('update_time').value = '';
+        }
+        document.getElementById('update_faultType').value = r.faultType || '';
+        document.getElementById('update_faultDesc').value = r.faultDesc || '';
+        document.getElementById('update_repairAction').value = r.repairAction || '';
+        document.getElementById('update_person').value = r.repairPerson || '';
+        document.getElementById('update_cost').value = r.cost != null ? r.cost : '';
+        document.getElementById('update_duration').value = r.durationMinutes != null ? r.durationMinutes : '';
+    }
+
     function escapeHtml(s){ if (s==null) return ''; return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    // initial load
     doSearch(1);
 </script>
 </body>
