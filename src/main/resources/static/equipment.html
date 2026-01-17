@@ -177,6 +177,7 @@
             <div style="margin-top:8px;">
                 <button class="btn" id="btnUpdate">更新</button>
                 <button class="btn secondary" id="btnClear">清空表单</button>
+                <button class="btn danger" id="btnDelete" style="margin-left:8px;">删除</button>
                 <span id="update_msg" class="msg"></span>
                 <span id="update_err" class="err"></span>
             </div>
@@ -337,6 +338,24 @@
         });
         document.getElementById('update_msg').textContent = '';
         document.getElementById('update_err').textContent = '';
+    });
+
+    // Delete
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+        const errEl = document.getElementById('update_err');
+        errEl.textContent = '';
+        const deviceNo = document.getElementById('update_deviceNo').value.trim();
+        if (!deviceNo) { showMsg(errEl, '请输入要删除的 deviceNo', false); return; }
+        if (!confirm('确认删除设备 ' + deviceNo + ' ? 该操作将永久删除设备信息（维修记录不会被级联删除）。')) return;
+        try {
+            await postJson(API.delete, { deviceNo });
+            showMsg(document.getElementById('update_msg'), '删除成功');
+            // clear form and refresh list
+            document.getElementById('btnClear').click();
+            doSearch(1);
+        } catch (e) {
+            showMsg(errEl, '删除失败: ' + e.message, false);
+        }
     });
 
     // Search & pagination
