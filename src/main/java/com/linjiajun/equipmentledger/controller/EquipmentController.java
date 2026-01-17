@@ -5,6 +5,7 @@ import com.linjiajun.equipmentledger.dto.EquipmentCreateDTO;
 import com.linjiajun.equipmentledger.dto.EquipmentUpdateDTO;
 import com.linjiajun.equipmentledger.entity.Equipment;
 import com.linjiajun.equipmentledger.service.EquipmentService;
+import com.linjiajun.equipmentledger.vo.EquipmentWithCountVO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,13 +44,19 @@ public class EquipmentController {
         return e == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(e);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<IPage<Equipment>> search(
+    /**
+     * 分页 + 多条件搜索（返回设备信息 + 维修次数）
+     */
+    @GetMapping("/searchWithCount")
+    public ResponseEntity<IPage<EquipmentWithCountVO>> searchWithCount(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) String workshopId,
+            @RequestParam(required = false) String owner,
+            @RequestParam(required = false) String status
     ) {
-        IPage<Equipment> res = equipmentService.search(page, size, keyword);
+        IPage<EquipmentWithCountVO> res = equipmentService.searchWithMaintenanceCount(page, size, model, workshopId, owner, status);
         return ResponseEntity.ok(res);
     }
 }

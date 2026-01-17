@@ -5,6 +5,7 @@ import com.linjiajun.equipmentledger.dto.EquipmentCreateDTO;
 import com.linjiajun.equipmentledger.dto.EquipmentUpdateDTO;
 import com.linjiajun.equipmentledger.entity.Equipment;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.linjiajun.equipmentledger.vo.EquipmentWithCountVO;
 
 /**
 * @author 21983
@@ -20,5 +21,10 @@ public interface EquipmentService extends IService<Equipment> {
 
     Equipment getById(String deviceNo);
 
-    IPage<Equipment> search(int page, int size, String keyword);
+    /**
+     * 分页 + 多条件模糊搜索（返回设备信息 + maintenanceCount）
+     */
+    IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size,
+                                                           String model, String workshopId,
+                                                           String owner, String status);
 }

@@ -11,11 +11,14 @@ import com.linjiajun.equipmentledger.entity.Equipment;
 import com.linjiajun.equipmentledger.mapper.MaintenanceColMapper;
 import com.linjiajun.equipmentledger.service.EquipmentService;
 import com.linjiajun.equipmentledger.mapper.EquipmentMapper;
+import com.linjiajun.equipmentledger.vo.EquipmentWithCountVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 /**
 * @author 21983
@@ -134,20 +137,23 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     }
 
     @Override
-    public IPage<Equipment> search(int page, int size, String keyword) {
-        Page<Equipment> pg = new Page<>(page, size);
-        QueryWrapper<Equipment> qw = new QueryWrapper<>();
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            String k = "%" + keyword.trim() + "%";
-            qw.and(wrapper -> wrapper
-                    .like("device_no", keyword)
-                    .or()
-                    .like("model", keyword)
-                    .or()
-                    .like("workshop_id", keyword)
-            );
+    public IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size, String model, String workshopId, String owner, String status) {
+        // 计算总数（使用 mapper 的 countByFields）
+        long total = equipmentMapper.countByFields(null /*deviceNo*/, model, workshopId, owner, status);
+
+        Page<EquipmentWithCountVO> pg = new Page<>(page, size);
+        pg.setTotal(total);
+
+        if (total == 0) {
+            pg.setRecords(Collections.emptyList());
+            return pg;
         }
-        return equipmentMapper.selectPage(pg, qw);
+
+        int offset = (page - 1) * size;
+        List<EquipmentWithCountVO> rows = equipmentMapper.searchWithMaintenanceCount(null /*deviceNo*/, model, workshopId, owner, status, size, offset);
+
+        pg.setRecords(rows);
+        return pg;
     }
 }
 

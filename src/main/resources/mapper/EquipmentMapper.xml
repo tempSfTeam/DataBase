@@ -25,4 +25,82 @@
         workshop_id,owner,status,
         remark,created_at,updated_at
     </sql>
+
+    <!-- 带维修次数的分页查询（手动 LIMIT/OFFSET） -->
+    <select id="searchWithMaintenanceCount" resultType="com.linjiajun.equipmentledger.vo.EquipmentWithCountVO" parameterType="map">
+        SELECT
+        e.device_no AS deviceNo,
+        e.model AS model,
+        e.manufacturer AS manufacturer,
+        e.manufacture_date AS manufactureDate,
+        e.purchase_date AS purchaseDate,
+        e.purchase_price AS purchasePrice,
+        e.workshop_id AS workshopId,
+        e.owner AS owner,
+        e.status AS status,
+        e.remark AS remark,
+        e.created_at AS createdAt,
+        e.updated_at AS updatedAt,
+        COUNT(m.maintenance_id) AS maintenanceCount
+        FROM equipment e
+        LEFT JOIN workshop w ON e.workshop_id = w.workshop_id
+        LEFT JOIN maintenance_col m ON e.device_no = m.device_no
+        WHERE 1=1
+        <if test="deviceNo != null and deviceNo.trim() != ''">
+            AND LOWER(e.device_no) LIKE '%' || LOWER(#{deviceNo}) || '%'
+        </if>
+
+        <if test="model != null and model.trim() != ''">
+            AND LOWER(e.model) LIKE '%' || LOWER(#{model}) || '%'
+        </if>
+
+        <if test="workshopId != null and workshopId.trim() != ''">
+            AND LOWER(w.workshop_id) LIKE '%' || LOWER(#{workshopId}) || '%'
+        </if>
+
+        <if test="owner != null and owner.trim() != ''">
+            AND LOWER(e.owner) LIKE '%' || LOWER(#{owner}) || '%'
+        </if>
+
+        <!-- status 如果希望模糊匹配可以改为 LIKE，当前示例使用等值匹配（可按需修改） -->
+        <if test="status != null and status.trim() != ''">
+            AND e.status = #{status}
+        </if>
+
+        GROUP BY
+        e.device_no, e.model, e.manufacturer, e.manufacture_date, e.purchase_date,
+        e.purchase_price, e.workshop_id, e.owner, e.status, e.remark,
+        e.created_at, e.updated_at
+
+        ORDER BY e.updated_at DESC
+
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 计数：统计符合条件的不同设备数量 -->
+    <select id="countByFields" resultType="long" parameterType="map">
+        SELECT COUNT(DISTINCT e.device_no)
+        FROM equipment e
+        LEFT JOIN workshop w ON e.workshop_id = w.workshop_id
+        WHERE 1=1
+        <if test="deviceNo != null and deviceNo.trim() != ''">
+            AND LOWER(e.device_no) LIKE '%' || LOWER(#{deviceNo}) || '%'
+        </if>
+
+        <if test="model != null and model.trim() != ''">
+            AND LOWER(e.model) LIKE '%' || LOWER(#{model}) || '%'
+        </if>
+
+        <if test="workshopId != null and workshopId.trim() != ''">
+            AND LOWER(w.workshop_id) LIKE '%' || LOWER(#{workshopId}) || '%'
+        </if>
+
+        <if test="owner != null and owner.trim() != ''">
+            AND LOWER(e.owner) LIKE '%' || LOWER(#{owner}) || '%'
+        </if>
+
+        <if test="status != null and status.trim() != ''">
+            AND e.status = #{status}
+        </if>
+    </select>
 </mapper>
