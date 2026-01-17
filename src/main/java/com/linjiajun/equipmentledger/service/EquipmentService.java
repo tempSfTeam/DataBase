@@ -1,5 +1,8 @@
 package com.linjiajun.equipmentledger.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.linjiajun.equipmentledger.dto.EquipmentCreateDTO;
+import com.linjiajun.equipmentledger.dto.EquipmentUpdateDTO;
 import com.linjiajun.equipmentledger.entity.Equipment;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +12,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2026-01-17 15:01:17
 */
 public interface EquipmentService extends IService<Equipment> {
+    Equipment create(EquipmentCreateDTO dto);
 
+    Equipment update(EquipmentUpdateDTO dto);
+
+    void delete(String deviceNo);
+
+    Equipment getById(String deviceNo);
+
+    IPage<Equipment> search(int page, int size, String keyword);
 }

@@ -5,8 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 
@@ -14,6 +19,9 @@ import lombok.Data;
  */
 @TableName(value ="maintenance_col")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MaintenanceCol implements Serializable {
     /**
      * 
@@ -34,7 +42,7 @@ public class MaintenanceCol implements Serializable {
     /**
      * 
      */
-    private Date maintenanceTime;
+    private LocalDateTime maintenanceTime;
 
     /**
      * 
@@ -69,12 +77,12 @@ public class MaintenanceCol implements Serializable {
     /**
      * 
      */
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     /**
      * 
      */
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

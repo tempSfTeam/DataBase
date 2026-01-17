@@ -1,5 +1,6 @@
 package com.linjiajun.equipmentledger.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.linjiajun.equipmentledger.entity.Workshop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +10,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2026-01-17 15:01:17
 */
 public interface WorkshopService extends IService<Workshop> {
-
+    Workshop create(Workshop w);
+    Workshop update(Workshop w);
+    void delete(String workshopId);
+    Workshop getById(String workshopId);
+    IPage<Workshop> page(int page, int size, String keyword);
 }

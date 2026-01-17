@@ -5,8 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 
@@ -14,6 +20,9 @@ import lombok.Data;
  */
 @TableName(value ="equipment")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Equipment implements Serializable {
     /**
      * 
@@ -34,12 +43,12 @@ public class Equipment implements Serializable {
     /**
      * 
      */
-    private Date manufactureDate;
+    private LocalDate manufactureDate;
 
     /**
      * 
      */
-    private Date purchaseDate;
+    private LocalDate purchaseDate;
 
     /**
      * 
@@ -57,7 +66,7 @@ public class Equipment implements Serializable {
     private String owner;
 
     /**
-     * 
+     * 设备状态：IN_SERVICE / UNDER_MAINT / SCRAPPED
      */
     private String status;
 
@@ -69,12 +78,12 @@ public class Equipment implements Serializable {
     /**
      * 
      */
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     /**
      * 
      */
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
