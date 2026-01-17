@@ -24,7 +24,7 @@ public interface EquipmentService extends IService<Equipment> {
     /**
      * 分页 + 多条件模糊搜索（返回设备信息 + maintenanceCount）
      */
-    IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size,
+    IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size,String deviceNo,
                                                            String model, String workshopId,
                                                            String owner, String status);
 }

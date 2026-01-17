@@ -188,6 +188,7 @@
         <h2>搜索设备（分页 + 筛选）</h2>
 
         <div>
+            <label>设备编号 (deviceNo): <input id="q_deviceNo" type="text" /></label>
             <label>型号 (model): <input id="q_model" type="text" /></label>
             <label>车间ID (workshopId): <input id="q_workshopId" type="text" /></label>
             <label>负责人 (owner): <input id="q_owner" type="text" /></label>
@@ -369,6 +370,7 @@
         const params = new URLSearchParams({
             page,
             size: pageSize,
+            deviceNo: document.getElementById('q_deviceNo').value.trim(),
             model: document.getElementById('q_model').value.trim(),
             workshopId: document.getElementById('q_workshopId').value.trim(),
             owner: document.getElementById('q_owner').value.trim(),

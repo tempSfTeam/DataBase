@@ -137,7 +137,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     }
 
     @Override
-    public IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size, String model, String workshopId, String owner, String status) {
+    public IPage<EquipmentWithCountVO> searchWithMaintenanceCount(int page, int size, String deviceNo, String model, String workshopId, String owner, String status) {
         // 计算总数（使用 mapper 的 countByFields）
         long total = equipmentMapper.countByFields(null /*deviceNo*/, model, workshopId, owner, status);
 
@@ -150,7 +150,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         }
 
         int offset = (page - 1) * size;
-        List<EquipmentWithCountVO> rows = equipmentMapper.searchWithMaintenanceCount(null /*deviceNo*/, model, workshopId, owner, status, size, offset);
+        List<EquipmentWithCountVO> rows = equipmentMapper.searchWithMaintenanceCount(deviceNo, model, workshopId, owner, status, size, offset);
 
         pg.setRecords(rows);
         return pg;

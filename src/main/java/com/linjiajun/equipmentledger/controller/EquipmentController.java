@@ -51,12 +51,13 @@ public class EquipmentController {
     public ResponseEntity<IPage<EquipmentWithCountVO>> searchWithCount(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String deviceNo,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) String workshopId,
             @RequestParam(required = false) String owner,
             @RequestParam(required = false) String status
     ) {
-        IPage<EquipmentWithCountVO> res = equipmentService.searchWithMaintenanceCount(page, size, model, workshopId, owner, status);
+        IPage<EquipmentWithCountVO> res = equipmentService.searchWithMaintenanceCount(page, size, deviceNo, model, workshopId, owner, status);
         return ResponseEntity.ok(res);
     }
 }
