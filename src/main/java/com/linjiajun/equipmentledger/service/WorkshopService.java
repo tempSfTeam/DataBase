@@ -14,5 +14,16 @@ public interface WorkshopService extends IService<Workshop> {
     Workshop update(Workshop w);
     void delete(String workshopId);
     Workshop getById(String workshopId);
-    IPage<Workshop> page(int page, int size, String keyword);
+
+    /**
+     * 分页 + 四字段模糊搜索：
+     * - workshopId: 车间编号模糊匹配（可为空）
+     * - name: 车间名模糊匹配（可为空）
+     * - manager: 负责人模糊匹配（可为空）
+     * - location: 地点模糊匹配（可为空）
+     * 若某项为空则不作为筛选条件。
+     */
+    IPage<Workshop> searchByFields(int page, int size,
+                                   String workshopId, String name,
+                                   String manager, String location);
 }

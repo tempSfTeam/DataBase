@@ -1,7 +1,10 @@
 package com.linjiajun.equipmentledger.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.linjiajun.equipmentledger.entity.Workshop;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 21983
@@ -10,7 +13,18 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.linjiajun.equipmentledger.entity.Workshop
 */
 public interface WorkshopMapper extends BaseMapper<Workshop> {
-
+    /**
+     * 分页 + 四字段模糊搜索（workshop_id / name / manager / location）
+     * - page: MyBatis-Plus Page 对象
+     * - 参数可为空，表示不做该项筛选
+     */
+    IPage<Workshop> searchByFields(
+            Page<Workshop> page,
+            @Param("workshopId") String workshopId,
+            @Param("name") String name,
+            @Param("manager") String manager,
+            @Param("location") String location
+    );
 }
 
 

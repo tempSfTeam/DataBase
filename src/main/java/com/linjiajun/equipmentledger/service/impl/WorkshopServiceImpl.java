@@ -73,13 +73,11 @@ public class WorkshopServiceImpl extends ServiceImpl<WorkshopMapper, Workshop>
     }
 
     @Override
-    public IPage<Workshop> page(int page, int size, String keyword) {
+    public IPage<Workshop> searchByFields(int page, int size, String workshopId, String name, String manager, String location) {
         Page<Workshop> pg = new Page<>(page, size);
-        QueryWrapper<Workshop> qw = new QueryWrapper<>();
-        if (StringUtils.hasText(keyword)) {
-            qw.and(w -> w.like("workshop_id", keyword).or().like("name", keyword));
-        }
-        return workshopMapper.selectPage(pg, qw);
+
+        // 直接委托给 Mapper XML 中的 SQL；参数若为空，XML 的 <if> 会忽略对应条件
+        return workshopMapper.searchByFields(pg, workshopId, name, manager, location);
     }
 }
 

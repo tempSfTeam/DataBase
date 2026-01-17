@@ -38,12 +38,25 @@ public class WorkshopController {
         return w == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(w);
     }
 
-    @GetMapping("/page")
-    public ResponseEntity<IPage<Workshop>> page(
+    /**
+     * 分页 + 四字段模糊搜索：
+     * 参数：
+     *  - page, size
+     *  - workshopId, name, manager, location （任意可选，空则不作为筛选）
+     *
+     * 示例：
+     * GET /api/workshops/search?page=1&size=10&workshopId=W001&name=装配&manager=张&location=北区
+     */
+    @GetMapping("/search")
+    public ResponseEntity<IPage<Workshop>> search(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String workshopId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String manager,
+            @RequestParam(required = false) String location
     ) {
-        return ResponseEntity.ok(service.page(page, size, keyword));
+        IPage<Workshop> res = service.searchByFields(page, size, workshopId, name, manager, location);
+        return ResponseEntity.ok(res);
     }
 }

@@ -19,4 +19,28 @@
         location,description,created_at,
         updated_at
     </sql>
+
+    <!-- searchByFields: 分页 + 四字段模糊搜索 -->
+    <select id="searchByFields" resultType="com.linjiajun.equipmentledger.entity.Workshop" parameterType="map">
+        SELECT w.*
+        FROM workshop w
+        WHERE 1=1
+        <if test="workshopId != null and workshopId.trim() != ''">
+            AND LOWER(w.workshop_id) LIKE '%' || LOWER(#{workshopId}) || '%'
+        </if>
+
+        <if test="name != null and name.trim() != ''">
+            AND LOWER(w.name) LIKE '%' || LOWER(#{name}) || '%'
+        </if>
+
+        <if test="manager != null and manager.trim() != ''">
+            AND LOWER(w.manager) LIKE '%' || LOWER(#{manager}) || '%'
+        </if>
+
+        <if test="location != null and location.trim() != ''">
+            AND LOWER(w.location) LIKE '%' || LOWER(#{location}) || '%'
+        </if>
+
+        ORDER BY w.updated_at DESC
+    </select>
 </mapper>
