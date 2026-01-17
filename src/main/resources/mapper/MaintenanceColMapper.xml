@@ -25,4 +25,42 @@
         repair_action,repair_person,cost,
         duration_minutes,created_at,updated_at
     </sql>
+
+
+    <!-- 插入并返回 id -->
+    <select id="insertMaintenance" resultType="long" parameterType="map">
+        SELECT sp_insert_maintenance(
+                       #{maintenanceNo, jdbcType=VARCHAR},
+                       #{deviceNo, jdbcType=VARCHAR},
+                       #{maintenanceTime, jdbcType=TIMESTAMP},  -- 若函数接受 timestamptz, TIMESTAMP/TIMESTAMP_WITH_TIMEZONE
+                       #{faultType, jdbcType=VARCHAR},
+                       #{faultDesc, jdbcType=VARCHAR},
+                       #{repairAction, jdbcType=VARCHAR},
+                       #{repairPerson, jdbcType=VARCHAR},
+                       #{cost, jdbcType=NUMERIC},
+                       #{durationMinutes, jdbcType=INTEGER}
+               )
+    </select>
+
+    <!-- 更新 -->
+    <update id="updateMaintenance" parameterType="map">
+        SELECT sp_update_maintenance(
+                       #{maintenanceId, jdbcType=BIGINT},
+                       #{maintenanceNo, jdbcType=VARCHAR},
+                       #{deviceNo, jdbcType=VARCHAR},
+                       #{maintenanceTime, jdbcType=TIMESTAMP},
+                       #{faultType, jdbcType=VARCHAR},
+                       #{faultDesc, jdbcType=VARCHAR},
+                       #{repairAction, jdbcType=VARCHAR},
+                       #{repairPerson, jdbcType=VARCHAR},
+                       #{cost, jdbcType=NUMERIC},
+                       #{durationMinutes, jdbcType=INTEGER}
+               )
+    </update>
+
+    <!-- 删除 -->
+    <update id="deleteMaintenance" parameterType="long">
+        SELECT sp_delete_maintenance( #{maintenanceId, jdbcType=BIGINT} )
+    </update>
+
 </mapper>
