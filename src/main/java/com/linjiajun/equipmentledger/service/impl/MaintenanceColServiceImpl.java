@@ -71,18 +71,12 @@ public class MaintenanceColServiceImpl extends ServiceImpl<MaintenanceColMapper,
     }
 
     @Override
-    public IPage<MaintenanceCol> page(int page, int size, String deviceNo, String faultType) {
+    public IPage<MaintenanceCol> searchByFilters(int page, int size, String deviceNo, String workshopId, String maintenanceDate, String dateType, String faultType) {
         Page<MaintenanceCol> pg = new Page<>(page, size);
-        QueryWrapper<MaintenanceCol> qw = new QueryWrapper<>();
-        if (StringUtils.hasText(deviceNo)) {
-            qw.eq("device_no", deviceNo);
-        }
-        if (StringUtils.hasText(faultType)) {
-            qw.eq("fault_type", faultType);
-        }
-        return maintenanceColMapper.selectPage(pg, qw);
-    }
 
+        // 参数传递给 mapper，mapper 的 <if> 会忽略空值
+        return maintenanceColMapper.searchByFilters(pg, deviceNo, workshopId, maintenanceDate, dateType, faultType);
+    }
 }
 
 

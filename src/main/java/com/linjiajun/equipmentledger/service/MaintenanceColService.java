@@ -19,5 +19,11 @@ public interface MaintenanceColService extends IService<MaintenanceCol> {
 
     MaintenanceCol getById(Long id);
 
-    IPage<MaintenanceCol> page(int page, int size, String deviceNo, String faultType);
+    /**
+     * 分页 + 多条件搜索（deviceNo / workshopId / maintenanceDate(dateType=day|month) / faultType）
+     */
+    IPage<MaintenanceCol> searchByFilters(int page, int size,
+                                          String deviceNo, String workshopId,
+                                          String maintenanceDate, String dateType,
+                                          String faultType);
 }

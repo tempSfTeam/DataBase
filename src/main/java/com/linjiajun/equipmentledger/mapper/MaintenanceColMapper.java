@@ -1,5 +1,7 @@
 package com.linjiajun.equipmentledger.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.linjiajun.equipmentledger.entity.MaintenanceCol;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
@@ -40,6 +42,25 @@ public interface MaintenanceColMapper extends BaseMapper<MaintenanceCol> {
 
     // 删除
     void deleteMaintenance(@Param("maintenanceId") Long maintenanceId);
+
+    /**
+     * 分页 + 多条件搜索：
+     * - deviceNo (模糊)
+     * - workshopId (模糊) -- 通过 join equipment e on m.device_no = e.device_no
+     * - maintenanceDate & dateType: dateType='day' => compare DATE(m.maintenance_time) = maintenanceDate (YYYY-MM-DD)
+     *                         dateType='month' => compare to_char(m.maintenance_time,'YYYY-MM') = maintenanceDate (YYYY-MM)
+     * - faultType (模糊)
+     *
+     * 参数为空时忽略该条件。
+     */
+    IPage<MaintenanceCol> searchByFilters(
+            Page<MaintenanceCol> page,
+            @Param("deviceNo") String deviceNo,
+            @Param("workshopId") String workshopId,
+            @Param("maintenanceDate") String maintenanceDate,
+            @Param("dateType") String dateType,
+            @Param("faultType") String faultType
+    );
 }
 
 

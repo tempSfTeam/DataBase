@@ -63,4 +63,37 @@
         SELECT sp_delete_maintenance( #{maintenanceId, jdbcType=BIGINT} )
     </update>
 
+    <!-- 分页 + 多条件过滤搜索 -->
+    <select id="searchByFilters" resultType="com.linjiajun.equipmentledger.entity.MaintenanceCol" parameterType="map">
+        SELECT m.*
+        FROM maintenance_col m
+        LEFT JOIN equipment e ON m.device_no = e.device_no
+        WHERE 1=1
+
+        <!-- 设备编号模糊 -->
+        <if test="deviceNo != null and deviceNo.trim() != ''">
+            AND LOWER(m.device_no) LIKE '%' || LOWER(#{deviceNo}) || '%'
+        </if>
+
+        <!-- 车间编号模糊 (通过 equipment.workshop_id) -->
+        <if test="workshopId != null and workshopId.trim() != ''">
+            AND LOWER(e.workshop_id) LIKE '%' || LOWER(#{workshopId}) || '%'
+        </if>
+
+        <!-- 故障类型模糊 -->
+        <if test="faultType != null and faultType.trim() != ''">
+            AND LOWER(m.fault_type) LIKE '%' || LOWER(#{faultType}) || '%'
+        </if>
+
+        <!-- maintenance_time 日期筛选：支持 day 或 month -->
+        <if test="maintenanceDate != null and maintenanceDate.trim() != '' and dateType != null and dateType == 'day'">
+            AND DATE(m.maintenance_time) = CAST(#{maintenanceDate} AS date)
+        </if>
+
+        <if test="maintenanceDate != null and maintenanceDate.trim() != '' and dateType != null and dateType == 'month'">
+            AND to_char(m.maintenance_time, 'YYYY-MM') = #{maintenanceDate}
+        </if>
+
+        ORDER BY m.maintenance_time DESC
+    </select>
 </mapper>
